@@ -1,5 +1,19 @@
-h1 {
-  color: blue;
+body {
+  background-image: url(./img/game-bg.jpg);
+}
+
+.game-title {
+  width: 50vw;
+  background-image: url('./img/vue.jpg');
+  background-repeat: no-repeat;
+  background-position: top bottom;
+  background-size: cover;
+  text-align: center;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  font-size: 4rem;
+  margin: 0 auto;
 }
 
 * {
@@ -10,4 +24,10 @@ canvas {
   background: #eee;
   display: block;
   margin: 0 auto;
+}
+
+#myCanvas {
+  background-image: url(./img/L.jpg);
+  background-size: cover;
+  background-position: center center;
 }
