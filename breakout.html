@@ -1,0 +1,229 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Joshua Games</title>
+    <link rel="icon" type="image/png" href="./icon/brickwall.png" />
+    <link href="./breakout.css" rel="stylesheet" />
+  </head>
+  <body>
+    <h1>Breakout</h1>
+
+    <canvas id="myCanvas" width="1080" height="800"></canvas>
+  </body>
+
+  <script>
+    var canvas = document.getElementById("myCanvas");
+    var ctx = canvas.getContext("2d");
+
+    // 定義球的 x, y 位置
+    var x = canvas.width / 10;
+    var y = canvas.height - 30;
+
+    // 移動距離決定速度
+    var dx = 4;
+    var dy = -4;
+
+    // 定義球的半徑
+    var ballRadius = 10;
+
+    // 定義球色
+    var ballColor = "#8E8E8E";
+
+    // 定義球板
+    var paddleHeight = 10;
+    var paddleWidth = 125;
+    var paddleX = (canvas.width - paddleWidth) / 2;
+
+    // 球拍控制按鈕
+    var rightPressed = false;
+    var leftPressed = false;
+
+    // 定義磚塊
+    var brickRowCount = 3;
+    var brickColumnCount = 5;
+    var brickWidth = 172;
+    var brickHeight = 60;
+    var brickPadding = 40;
+    var brickOffsetTop = 30;
+    var brickOffsetLeft = 30;
+
+    // 生成磚塊群
+    var bricks = [];
+    for (c = 0; c < brickColumnCount; c++) {
+      bricks[c] = [];
+      for (r = 0; r < brickRowCount; r++) {
+        bricks[c][r] = { x: 0, y: 0, status: 1 };
+      }
+    }
+
+    // 定義一個總分
+    var score = 0;
+
+    // 繪製圓型
+    function drawBall() {
+      ctx.beginPath();
+      ctx.arc(x, y, ballRadius, 0, Math.PI * 2);
+      ctx.fillStyle = ballColor;
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    // 繪製球拍
+    function drawPaddle() {
+      ctx.beginPath();
+      ctx.rect(
+        paddleX,
+        canvas.height - paddleHeight,
+        paddleWidth,
+        paddleHeight
+      );
+      ctx.fillStyle = "#3b5998";
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    // 繪製磚塊群
+    function drawBricks() {
+      for (c = 0; c < brickColumnCount; c++) {
+        for (r = 0; r < brickRowCount; r++) {
+          if (bricks[c][r].status == 1) {
+            var brickX = c * (brickWidth + brickPadding) + brickOffsetLeft;
+            var brickY = r * (brickHeight + brickPadding) + brickOffsetTop;
+            bricks[c][r].x = brickX;
+            bricks[c][r].y = brickY;
+            ctx.beginPath();
+            ctx.rect(brickX, brickY, brickWidth, brickHeight);
+            ctx.fillStyle = "#CC3300";
+            ctx.fill();
+            ctx.closePath();
+          }
+        }
+      }
+    }
+
+    // 繪製分數看板
+    function drawScore() {
+      ctx.font = "20px Luminari";
+      ctx.fillStyle = "#0072E3";
+      ctx.fillText("Score: " + score, 8, 20);
+    }
+
+    // 監聽控制按鈕
+    document.addEventListener("keydown", keyDownHandler, false);
+    document.addEventListener("keyup", keyUpHandler, false);
+    document.addEventListener("mousemove", mouseMoveHandler, false);
+
+    function mouseMoveHandler(e) {
+      var relativeX = e.clientX - canvas.offsetLeft;
+      if (relativeX > 0 && relativeX < canvas.width) {
+        paddleX = relativeX - paddleWidth / 2;
+      }
+    }
+
+    function keyDownHandler(e) {
+      if (e.keyCode == 39) {
+        rightPressed = true;
+        console.log("👉");
+      } else if (e.keyCode == 37) {
+        leftPressed = true;
+        console.log("👈");
+      }
+    }
+
+    function keyUpHandler(e) {
+      if (e.keyCode == 39) {
+        rightPressed = false;
+      } else if (e.keyCode == 37) {
+        leftPressed = false;
+      }
+    }
+
+    // 撞擊測試
+    function collisionDetection() {
+      for (c = 0; c < brickColumnCount; c++) {
+        for (r = 0; r < brickRowCount; r++) {
+          var b = bricks[c][r];
+          if (b.status == 1) {
+            if (
+              x > b.x &&
+              x < b.x + brickWidth &&
+              y > b.y &&
+              y < b.y + brickHeight
+            ) {
+              dy = -dy;
+              b.status = 0;
+              score++;
+              if (score == brickRowCount * brickColumnCount) {
+                alert("~~~ CONGRATULATIONS ~~~");
+                document.location.reload();
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // 渲染畫布
+    function draw() {
+      // 清除軌跡
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBall();
+      drawPaddle();
+      drawScore();
+      collisionDetection();
+      drawBricks();
+
+      // 右
+      if (x + dx > canvas.width - ballRadius) {
+        dx = -dx;
+        ballColor = "#EB4537";
+      }
+
+      // 左
+      if (x + dx < ballRadius) {
+        dx = -dx;
+        ballColor = "#55AF7B";
+      }
+
+      // if上 else下
+      if (y + dy < ballRadius) {
+        dy = -dy;
+        ballColor = "#4286F3";
+      } else if (y + dy > canvas.height - ballRadius) {
+        if (x >= paddleX && x <= paddleX + paddleWidth) {
+          dy = -dy;
+          ballColor = "#FAC230";
+        } else {
+          dy = 0;
+          dx = 0;
+          alert("GAME OVER");
+          document.location.reload();
+        }
+      }
+
+      x += dx;
+      y += dy;
+      requestAnimationFrame(draw);
+
+      if (rightPressed) {
+        if (paddleX > canvas.width - paddleWidth) {
+          paddleX = canvas.width - paddleWidth;
+          return;
+        }
+        paddleX += 7;
+      }
+      if (leftPressed) {
+        if (paddleX < 0) {
+          paddleX = 0;
+          console.log(paddleX);
+          return;
+        }
+        paddleX -= 7;
+      }
+    }
+
+    draw();
+  </script>
+</html>
