@@ -1,0 +1,174 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Breaker</title>
+    <link href="./breakout.css" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="./icon/brickwall.png" />
+  </head>
+  <body>
+    <div class="game-title">Breakout</div>
+    <canvas id="breakout" width="600" height="800"></canvas>
+  </body>
+
+  <script>
+    // 定義 Canvas
+    const cvs = document.getElementById("breakout");
+    const ctx = cvs.getContext("2d");
+    let leftArrow = false;
+    let rightArrow = false;
+    let LIFE = 3;
+
+    // 定義 Paddle
+    const PADDLE_WIDTH = 100;
+    const PADDLE_HEIGHT = 20;
+    const PADDLE_MARGIN_BOTTOM = 50;
+
+    const paddle = {
+      x: cvs.width / 2 - PADDLE_WIDTH / 2,
+      y: cvs.height - PADDLE_HEIGHT - PADDLE_MARGIN_BOTTOM,
+      width: PADDLE_WIDTH,
+      height: PADDLE_HEIGHT,
+      dx: 5,
+    };
+
+    // 定義 ball
+    const BALL_RADIUS = 8;
+    const ball = {
+      x: cvs.width / 2,
+      y: paddle.y - BALL_RADIUS,
+      radius: BALL_RADIUS,
+      speed: 3,
+      dx: 3,
+      dy: -3,
+    };
+
+    // 繪製 Paddle
+    function drawPaddle() {
+      ctx.fillStyle = "#2e3548";
+      ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+      ctx.strokeStyle = "#ffcd05";
+      ctx.strokeRect(paddle.x, paddle.y, paddle.width, paddle.height);
+    }
+
+    // 繪製 Ball
+    function drawBall() {
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+      ctx.fillStyle = "#ffcd05";
+      ctx.fill();
+      ctx.strokeStyle = "#2e3548";
+      ctx.stroke();
+      ctx.closePath();
+    }
+
+    // Ball 移動
+    function moveBall() {
+      ball.x += ball.dx;
+      ball.y += ball.dy;
+    }
+
+    // Ball 反彈 Wall
+    function ballWallCollision() {
+      // 右
+      if (ball.x + ball.radius > cvs.width) {
+        ball.dx = -ball.dx;
+      }
+
+      // 上
+      if (ball.y - ball.radius < 0) {
+        ball.dy = -ball.dy;
+      }
+
+      // 左
+      if (ball.x - ball.radius < 0) {
+        ball.dx = -ball.dx;
+      }
+
+      // 下
+      if (ball.y + ball.radius > cvs.height) {
+        // ball.dy = -ball.dy;
+        LIFE--;
+        resetBall();
+      }
+    }
+
+    // 重置球的起始位置
+    function resetBall() {
+      ball.x = cvs.width / 2;
+      ball.y = paddle.y - BALL_RADIUS;
+      ball.dx = 3 * (Math.random() * 2 - 1);
+      ball.dy = -3;
+    }
+
+    // Paddle 擊中 Ball
+    function ballPaddleCollision() {
+      if (
+        ball.y > paddle.y &&
+        ball.y < paddle.y + paddle.height &&
+        ball.x > paddle.x &&
+        ball.x < paddle.x + paddle.width
+      ) {
+        // 判斷擊中位置
+        let collidePoint = ball.x - (paddle.x + paddle.width / 2);
+        collidePoint = collidePoint / (paddle.width / 2);
+
+        // 判斷擊出角度
+        let angle = collidePoint * (Math.PI / 3);
+        ball.dx = ball.speed * Math.sin(angle);
+        ball.dy = -ball.speed * Math.cos(angle);
+      }
+    }
+
+    // 監聽 Paddle
+    document.addEventListener("keydown", (event) => {
+      if (event.keyCode == 37) {
+        leftArrow = true;
+      } else if (event.keyCode == 39) {
+        rightArrow = true;
+      }
+    });
+
+    document.addEventListener("keyup", (event) => {
+      if (event.keyCode == 37) {
+        leftArrow = false;
+      } else if (event.keyCode == 39) {
+        rightArrow = false;
+      }
+    });
+
+    // 移動 Paddle
+    function movePaddle() {
+      if (rightArrow && paddle.x + paddle.width < cvs.width) {
+        paddle.x += paddle.dx;
+      } else if (leftArrow && paddle.x > 0) {
+        paddle.x -= paddle.dx;
+      }
+    }
+
+    // draw 封裝
+    function draw() {
+      drawPaddle();
+      drawBall();
+    }
+
+    // update 封裝
+    function update() {
+      movePaddle();
+      moveBall();
+      ballWallCollision();
+      ballPaddleCollision();
+    }
+
+    function loop() {
+      // clear the canvas
+      ctx.clearRect(0, 0, cvs.width, cvs.height);
+      draw();
+      update();
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</html>

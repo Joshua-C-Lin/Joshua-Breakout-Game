@@ -1,5 +1,6 @@
 body {
   background-image: url(./img/game-bg.jpg);
+  background-size: cover;
 }
 
 .game-title {
@@ -30,4 +31,11 @@ canvas {
   background-image: url(./img/L.jpg);
   background-size: cover;
   background-position: center center;
+}
+
+#breakout {
+  margin: 10px auto;
+  background-image: url(./img/cold.jpg);
+  background-size: cover;
+  background-position: center;
 }
