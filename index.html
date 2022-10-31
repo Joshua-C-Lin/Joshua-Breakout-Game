@@ -6,9 +6,25 @@
     <title>Breaker</title>
     <link href="./breakout.css" rel="stylesheet" />
     <link rel="icon" type="image/png" href="./icon/brickwall.png" />
+    <link
+      rel="stylesheet"
+      href="http://fonts.googleapis.com/css?family=Germania+One"
+    />
   </head>
   <body>
-    <div class="game-title">Breakout</div>
+    <div class="game-title">
+      Breakout
+      <div class="sound-option">
+        <div class="icon-box">
+          <img src="./icon/soundOn.png" alt="" id="sound" />
+        </div>
+      </div>
+    </div>
+    <div id="gameover">
+      <img src="./img/win.png" alt="" id="youwon" />
+      <img src="./img/gameOver.jpg" alt="" id="youlose" />
+      <div id="restart" class="neon">Try Again!</div>
+    </div>
     <canvas id="breakout" width="600" height="800"></canvas>
   </body>
 
@@ -33,13 +49,16 @@
 
     // 音效
     const PADDLE_HIT = new Audio();
-    PADDLE_HIT.src = "./sounds/paddleHit.wav";
+    PADDLE_HIT.src = "./sounds/paddleHit.mp3";
 
     const LIFE_LOST = new Audio();
     LIFE_LOST.src = "./sounds/lifeLost.mp3";
 
     const BRICK_HIT = new Audio();
     BRICK_HIT.src = "./sounds/brickHit.mp3";
+
+    const LEVEL_UP = new Audio();
+    LEVEL_UP.src = "./sounds/LevelUp.mp3";
 
     // 定義 Paddle
     const PADDLE_WIDTH = 100;
@@ -55,7 +74,7 @@
     };
 
     // 定義 ball
-    const BALL_RADIUS = 8;
+    const BALL_RADIUS = 10;
     const ball = {
       x: cvs.width / 2,
       y: paddle.y - BALL_RADIUS,
@@ -67,7 +86,7 @@
 
     // 定義 Brick
     const brick = {
-      row: 3,
+      row: 1,
       column: 7,
       width: 63,
       height: 10,
@@ -125,7 +144,6 @@
 
     // Ball 反彈 Wall
     function ballWallCollision() {
-
       // 右
       if (ball.x + ball.radius > cvs.width) {
         ball.dx = -ball.dx;
@@ -210,21 +228,12 @@
     function drawBricks() {
       for (let r = 0; r < brick.row; r++) {
         for (let c = 0; c < brick.column; c++) {
-          if (bricks[r][c].status === true) {
+          let b = bricks[r][c];
+          if (b.status === true) {
             ctx.fillStyle = brick.fillColor;
-            ctx.fillRect(
-              bricks[r][c].x,
-              bricks[r][c].y,
-              brick.width,
-              brick.height
-            );
+            ctx.fillRect(b.x, b.y, brick.width, brick.height);
             ctx.strokeStyle = brick.strokeColor;
-            ctx.strokeRect(
-              bricks[r][c].x,
-              bricks[r][c].y,
-              brick.width,
-              brick.height
-            );
+            ctx.strokeRect(b.x, b.y, brick.width, brick.height);
           }
         }
       }
@@ -243,7 +252,7 @@
               ball.y - ball.radius < b.y + brick.height // 撞擊上方
             ) {
               BRICK_HIT.play();
-              console.log('擊中！！！')
+              console.log("擊中！！！");
               b.status = false;
               ball.dy = -ball.dy;
               SCORE += SCORE_UNIT;
@@ -264,6 +273,7 @@
     // GAME OVER
     function gameOver() {
       if (LIFE <= 0) {
+        showYouLose();
         GAME_OVER = true;
         // setTimeout(() => {
         //   alert('Game Over!!!');
@@ -282,8 +292,11 @@
       }
 
       if (isLevelDone) {
+        LEVEL_UP.play();
+        console.log("過關！！！");
         // 如果全部通關
-        if (LEVEL > MAX_LEVEL) {
+        if (LEVEL >= MAX_LEVEL) {
+          showYouWin();
           GAME_OVER = true;
           return;
         }
@@ -301,8 +314,11 @@
       drawPaddle();
       drawBall();
       drawBricks();
+      // 分數
       showGameStatus(SCORE, 58, 35, SCORE_IMG, 5, 5);
+      // 剩餘生命
       showGameStatus(LIFE, cvs.width - 35, 35, LIFE_IMG, cvs.width - 85, 5);
+      // 關卡
       showGameStatus(
         LEVEL,
         cvs.width / 2 + 25,
@@ -335,5 +351,49 @@
     }
 
     loop();
+
+    // 是否靜音
+    const soundElement = document.getElementById("sound");
+
+    soundElement.addEventListener("click", audioManager);
+
+    function audioManager() {
+      let imgSrc = soundElement.getAttribute("src");
+      let SOUND_IMG =
+        imgSrc == "./icon/soundOn.png"
+          ? "./icon/soundOff.png"
+          : "./icon/soundOn.png";
+
+      soundElement.setAttribute("src", SOUND_IMG);
+
+      // 監聽的聲音
+      PADDLE_HIT.muted = PADDLE_HIT.muted ? false : true;
+      LIFE_LOST.muted = LIFE_LOST.muted ? false : true;
+      BRICK_HIT.muted = BRICK_HIT.muted ? false : true;
+      LEVEL_UP.muted = LEVEL_UP.muted ? false : true;
+    }
+
+    // 遊戲過關或結束
+    const gameover = document.getElementById("gameover");
+    const youwon = document.getElementById("youwon");
+    const youlose = document.getElementById("youlose");
+    const restart = document.getElementById("restart");
+
+    // 再試一次按鈕
+    restart.addEventListener("click", () => {
+      location.reload();
+    });
+
+    // 獲勝
+    function showYouWin() {
+      gameover.style.display = "block";
+      youwon.style.display = "block";
+    }
+
+    // 失敗
+    function showYouLose() {
+      gameover.style.display = "block";
+      youlose.style.display = "block";
+    }
   </script>
 </html>
